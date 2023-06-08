@@ -4,16 +4,24 @@ import time
 import math
 import numpy as np
 import pyautogui as pg
+import sounddevice as sd
+from scipy.io.wavfile import write
+
+SMILING_MULTIPLIER = 0.16
+RAISING_EYEBROW_MULTIPLIER = 0.055
+OPEN_MOUTH_MULTIPLIER = 0.07
+SAMPLERATE = 44100
+RECORDING_SECONDS = 3
+RECORDING_NAME = "recording.wav"
 
 # Screen and camera resolutions
 screen_info = pg.size()
-w_cam, h_cam = 1470, 956
 w_scr, h_scr = screen_info.width, screen_info.height
 
 # Mouse control variables
 mouse_works = False
-smoothing = 3
-frame_reduction = 0
+SMOOTHING = 3
+FRAME_REDUCTION = 0
 
 # Scroll factorso
 up_scroll_factor = 15
@@ -23,7 +31,16 @@ down_scroll_factor = -2
 prev_time = 0
 
 # Initialize video capture
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
+
+suc, img = cap.read()
+cam_width = 0
+cam_height = 0
+if suc:
+    cam_width, cam_height, _ = img.shape
+SMILING = cam_width * SMILING_MULTIPLIER
+RAISING_EYEBROW = cam_width * RAISING_EYEBROW_MULTIPLIER
+OPEN_MOUTH = cam_width * OPEN_MOUTH_MULTIPLIER
 
 # Previous and current mouse coordinates
 prev_x, prev_y = 0, 0
@@ -82,44 +99,49 @@ while True:
         left_eye_length = math.hypot(left_eye_x - left_bottom_x, left_eye_y - left_bottom_y)
         right_eye_length = math.hypot(right_eye_x - right_bottom_x, right_eye_y - right_bottom_y)
 
+
         cv2.circle(image, (nose_x, nose_y), 5, (255, 0, 255), cv2.FILLED)
 
-        # Perform mouse movements with smoothing
-        x3 = np.interp(left_eye_x, (frame_reduction, w_cam - frame_reduction), (0, w_scr))
-        y3 = np.interp(left_eye_y, (frame_reduction, h_cam - frame_reduction), (0, h_scr))
-
-        curr_x = prev_x + (x3 - prev_x) / smoothing
-        curr_y = prev_y + (y3 - prev_y) / smoothing
 
         if mouse_works:
+            # Perform mouse movements with smoothing
+            x3 = np.interp(left_eye_x, (FRAME_REDUCTION, screen_info.width - FRAME_REDUCTION), (0, screen_info.width))
+            y3 = np.interp(left_eye_y, (FRAME_REDUCTION, screen_info.height - FRAME_REDUCTION), (0, screen_info.height))
+
+            curr_x = prev_x + (x3 - prev_x) / SMOOTHING
+            curr_y = prev_y + (y3 - prev_y) / SMOOTHING
             pg.moveTo(w_scr - curr_x, curr_y)
-        prev_x, prev_y = curr_x, curr_y
+            prev_x, prev_y = curr_x, curr_y
 
         # Scroll up when smiling and raising eyebrows
-        if left_eye_brow_length > 80 and right_eye_brow_length > 80 and left_right_lips_length > 225:
+        if left_eye_brow_length > RAISING_EYEBROW and right_eye_brow_length > RAISING_EYEBROW and left_right_lips_length > SMILING:
             pg.scroll(up_scroll_factor)
 
         # Scroll down when only smiling
-        elif left_right_lips_length > 225:
+        elif left_right_lips_length > SMILING:
             pg.scroll(down_scroll_factor)
-            if left_eye_length < 22:
-                down_scroll_factor -= 2
-                time.sleep(0.2)
 
         # Toggle mouse control when raising eyebrows
-        elif left_eye_brow_length > 80 and right_eye_brow_length > 80:
+        elif left_eye_brow_length > RAISING_EYEBROW and right_eye_brow_length > RAISING_EYEBROW:
             down_scroll_factor = -2
             mouse_works = not mouse_works
             time.sleep(0.26)
 
+        # Start recording when mouth is open
+        elif lips_length > OPEN_MOUTH:
+            print("Mouth open")
+
+            # Start recording
+            recording = sd.rec(int(RECORDING_SECONDS * SAMPLERATE), samplerate=SAMPLERATE, channels=1)
+            sd.wait() # Wait until recording finishes 
+            write(RECORDING_NAME, SAMPLERATE, recording) # Save recording
+
+        """
         # Blink eyes when eye length is less than a threshold
         elif left_eye_length < 22:
             pg.click()
             pg.hotkey('command', 'o')
-
-        # Hold mouse click when mouth is opened
-        if mouse_works and lips_length > 32:
-            time.sleep(0.18)
+        """
 
     # Display FPS
     curr_time = time.time()
