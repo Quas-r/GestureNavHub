@@ -1,22 +1,24 @@
 # GestureNavHub
 
-GestureNavHub is an application that allows you to control your computer using hand gestures and scrolling gestures. This application enables you to move the cursor and perform mouse clicks using hand gestures, as well as scroll through content by making scrolling gestures. Additionally, it provides the ability to record audio by opening your mouth.
+GestureNavHub is an application that allows you to control your computer using your facial expressions. This application enables you to move the cursor using your head, as well as scroll through content by making scrolling gestures. Additionally, it provides the ability to record audio by opening your mouth.
 
 
 ## Features
 
-* Mouse Control: Use hand gestures to move the cursor and perform mouse clicks, allowing you to navigate and interact with objects on your screen.
+* Mouse Control: Use hand gestures to move the cursor, allowing you to navigate around the screen.
 * Scroll Functionality: Scroll through content by making appropriate gestures, enabling quick navigation between pages or sections.
 * Audio Recording: Record audio by opening your mouth, making it convenient for taking voice notes or dictating text.
 
 
 ## Requirements
 
-* Python 3.7 or higher
+* Python 3.8
 * OpenCV
 * Mediapipe
 * Numpy
 * PyAutoGUI
+* Sounddevice
+* Scipy
 
 
 ## Installation
@@ -28,8 +30,8 @@ GestureNavHub is an application that allows you to control your computer using h
 
 ## Usage
 
-* Launch the application and position your hand in front of the camera.
-* Perform the appropriate hand gestures to control the cursor and perform mouse clicks.
+* Launch the application and position your head approximately 40 centimeters away from the screen.
+* Perform the appropriate head gestures to control the cursor.
 * Use scrolling gestures to scroll up or down on the screen.
 * Open your mouth to start recording audio.
 
@@ -44,5 +46,6 @@ Contributions are welcome! If you have any suggestions or improvements, please f
 * OpenCV
 * Mediapipe
 * PyAutoGUI
+* Sounddevice
 
 Please update the necessary sections and details based on your specific implementation.
