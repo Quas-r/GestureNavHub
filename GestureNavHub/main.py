@@ -37,7 +37,7 @@ down_scroll_factor = -2
 prev_time = 0
 
 # Initialize video capture
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 suc, img = cap.read()
 cam_width = 0
@@ -140,7 +140,6 @@ while True:
 
         # Start recording when mouth is open
         elif lips_length > OPEN_MOUTH:
-            print("Mouth open")
             playsound("count.mp3")
             # Start recording
             recording = sd.rec(int(RECORDING_SECONDS * SAMPLERATE), samplerate=SAMPLERATE, channels=1)
@@ -150,7 +149,6 @@ while True:
 
         # Blink eyes when eye length is less than a threshold
         elif left_eye_length < BLINK_EYE:
-            print(BLINK_EYE)
             pg.click()
             time.sleep(0.35)
 
