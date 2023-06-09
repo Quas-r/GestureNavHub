@@ -9,13 +9,16 @@ import datetime
 from playsound import playsound
 from scipy.io.wavfile import write
 
+# Multipliers to adjust gestures for all camera resolutions
 SMILING_MULTIPLIER = 0.16
 RAISING_EYEBROW_MULTIPLIER = 0.055
 BLINKING_MULTIPLIER = 0.013
 OPEN_MOUTH_MULTIPLIER = 0.07
+
+# Constants
 SAMPLERATE = 44100
-RECORDING_SECONDS = 3
-RECORDING_NAME = "recording"
+RECORDING_SECONDS = 5
+RECORDING_NAME = "recording-"
 
 # Screen and camera resolutions
 screen_info = pg.size()
@@ -34,7 +37,7 @@ down_scroll_factor = -2
 prev_time = 0
 
 # Initialize video capture
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 suc, img = cap.read()
 cam_width = 0
@@ -143,6 +146,7 @@ while True:
             recording = sd.rec(int(RECORDING_SECONDS * SAMPLERATE), samplerate=SAMPLERATE, channels=1)
             sd.wait()  # Wait until recording finishes
             write(RECORDING_NAME + str(datetime.datetime.now()) + ".wav", SAMPLERATE, recording)  # Save recording
+            playsound("recorded.mp3")
 
         # Blink eyes when eye length is less than a threshold
         elif left_eye_length < BLINK_EYE:
