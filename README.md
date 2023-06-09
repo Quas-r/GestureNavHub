@@ -5,7 +5,7 @@ GestureNavHub is an application that allows you to control your computer using y
 
 ## Features
 
-* Mouse Control: Use hand gestures to move the cursor, allowing you to navigate around the screen.
+* Mouse Control: Use face gestures to move the cursor, allowing you to navigate around the screen and perform clicks.
 * Scroll Functionality: Scroll through content by making appropriate gestures, enabling quick navigation between pages or sections.
 * Audio Recording: Record audio by opening your mouth, making it convenient for taking voice notes or dictating text.
 
