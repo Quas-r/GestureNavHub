@@ -5,14 +5,17 @@ import math
 import numpy as np
 import pyautogui as pg
 import sounddevice as sd
+import datetime
+from playsound import playsound
 from scipy.io.wavfile import write
 
 SMILING_MULTIPLIER = 0.16
 RAISING_EYEBROW_MULTIPLIER = 0.055
+BLINKING_MULTIPLIER = 0.013
 OPEN_MOUTH_MULTIPLIER = 0.07
 SAMPLERATE = 44100
 RECORDING_SECONDS = 3
-RECORDING_NAME = "recording.wav"
+RECORDING_NAME = "recording"
 
 # Screen and camera resolutions
 screen_info = pg.size()
@@ -23,7 +26,7 @@ mouse_works = False
 SMOOTHING = 3
 FRAME_REDUCTION = 0
 
-# Scroll factorso
+# Scroll factors
 up_scroll_factor = 15
 down_scroll_factor = -2
 
@@ -31,7 +34,7 @@ down_scroll_factor = -2
 prev_time = 0
 
 # Initialize video capture
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 suc, img = cap.read()
 cam_width = 0
@@ -41,6 +44,7 @@ if suc:
 SMILING = cam_width * SMILING_MULTIPLIER
 RAISING_EYEBROW = cam_width * RAISING_EYEBROW_MULTIPLIER
 OPEN_MOUTH = cam_width * OPEN_MOUTH_MULTIPLIER
+BLINK_EYE = cam_width * BLINKING_MULTIPLIER
 
 # Previous and current mouse coordinates
 prev_x, prev_y = 0, 0
@@ -52,6 +56,7 @@ draw_spec = mp_draw.DrawingSpec(thickness=2, circle_radius=1, color=(0, 255, 0))
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh()
 
+
 def find_landmarks(image, face_num=0):
     landmarks = []
     if results.multi_face_landmarks:
@@ -62,12 +67,14 @@ def find_landmarks(image, face_num=0):
             landmarks.append([id, x, y])
     return landmarks
 
+
 def draw_face(image, draw=True):
     if results.multi_face_landmarks:
         for face_landmarks in results.multi_face_landmarks:
             if draw:
                 mp_draw.draw_landmarks(image, face_landmarks, mp_face_mesh.FACEMESH_FACE_OVAL)
     return image
+
 
 while True:
     success, image = cap.read()
@@ -99,9 +106,7 @@ while True:
         left_eye_length = math.hypot(left_eye_x - left_bottom_x, left_eye_y - left_bottom_y)
         right_eye_length = math.hypot(right_eye_x - right_bottom_x, right_eye_y - right_bottom_y)
 
-
         cv2.circle(image, (nose_x, nose_y), 5, (255, 0, 255), cv2.FILLED)
-
 
         if mouse_works:
             # Perform mouse movements with smoothing
@@ -120,6 +125,9 @@ while True:
         # Scroll down when only smiling
         elif left_right_lips_length > SMILING:
             pg.scroll(down_scroll_factor)
+            if left_eye_length < BLINK_EYE:
+                down_scroll_factor -= 2
+                time.sleep(0.2)
 
         # Toggle mouse control when raising eyebrows
         elif left_eye_brow_length > RAISING_EYEBROW and right_eye_brow_length > RAISING_EYEBROW:
@@ -130,18 +138,17 @@ while True:
         # Start recording when mouth is open
         elif lips_length > OPEN_MOUTH:
             print("Mouth open")
-
+            playsound("count.mp3")
             # Start recording
             recording = sd.rec(int(RECORDING_SECONDS * SAMPLERATE), samplerate=SAMPLERATE, channels=1)
-            sd.wait() # Wait until recording finishes 
-            write(RECORDING_NAME, SAMPLERATE, recording) # Save recording
+            sd.wait()  # Wait until recording finishes
+            write(RECORDING_NAME + str(datetime.datetime.now()) + ".wav", SAMPLERATE, recording)  # Save recording
 
-        """
         # Blink eyes when eye length is less than a threshold
-        elif left_eye_length < 22:
+        elif left_eye_length < BLINK_EYE:
+            print(BLINK_EYE)
             pg.click()
-            pg.hotkey('command', 'o')
-        """
+            time.sleep(0.16)
 
     # Display FPS
     curr_time = time.time()
